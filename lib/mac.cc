@@ -35,7 +35,10 @@ mac_impl(bool debug) :
 			gr::io_signature::make(0, 0, 0)),
 			d_msg_offset(0),
 			d_seq_nr(0),
-			d_debug(debug) {
+			d_debug(debug),
+                        d_ne(0),
+                        d_n(0),
+                        d_seq_nr_pr(-1) {
 
 	message_port_register_in(pmt::mp("app in"));
 	set_msg_handler(pmt::mp("app in"), boost::bind(&mac_impl::app_in, this, _1));
@@ -75,6 +78,21 @@ void mac_in(pmt::pmt_t msg) {
 	}
 
 	pmt::pmt_t mac_payload = pmt::make_blob((char*)pmt::blob_data(blob) + 9 , data_len - 9 - 2);
+        int seq_nr = (int)(*((unsigned char*)pmt::blob_data(blob)+2));
+        printf("seq # = %d,      seq # prev = %d\n",seq_nr, d_seq_nr_pr);
+        float alpha=0.999;
+        float beta=1.0;
+        if (seq_nr > d_seq_nr_pr) {
+          d_ne=alpha*d_ne+beta*(seq_nr-d_seq_nr_pr-1);
+          d_n=alpha*d_n+beta*(seq_nr-d_seq_nr_pr); 
+        }
+        else {
+          d_ne=alpha*d_ne+beta*(seq_nr-(d_seq_nr_pr-256)-1);
+          d_n=alpha*d_n+beta*(seq_nr-(d_seq_nr_pr-256)); 
+        }
+        printf("%.0f    %.0f    %e\n",d_n,d_ne,d_ne/d_n);
+        dout << "MAC:                                                                           PER = " << d_ne/d_n << std::endl;
+        d_seq_nr_pr=seq_nr;
 
 	message_port_pub(pmt::mp("app out"), pmt::cons(pmt::PMT_NIL, mac_payload));
 }
@@ -94,8 +112,8 @@ void app_in(pmt::pmt_t msg) {
 		return;
 	}
 
-	dout << "MAC: received new message" << std::endl;
-	dout << "message length " << pmt::blob_length(blob) << std::endl;
+	dout << "MAC: received new message from APP layer" << std::endl;
+	dout << "MAC: message length " << pmt::blob_length(blob) << std::endl;
 
 	generate_mac((const char*)pmt::blob_data(blob), pmt::blob_length(blob));
 	print_message();
@@ -147,7 +165,7 @@ void generate_mac(const char *buf, int len) {
 
 	d_msg_len = 9 + len + 2;
 
-	dout << std::dec << "msg len " << d_msg_len <<
+	dout << std::dec << "MAC: msg len " << d_msg_len <<
 	        "    len " << len << std::endl;
 }
 
@@ -167,6 +185,9 @@ private:
 	int         d_msg_len;
 	uint8_t     d_seq_nr;
 	char        d_msg[256];
+        float       d_ne=0;
+        float       d_n=0;
+        int         d_seq_nr_pr=0;
 };
 
 mac::sptr
