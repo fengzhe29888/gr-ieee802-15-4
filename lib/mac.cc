@@ -20,7 +20,6 @@
 
 #include <iostream>
 #include <iomanip>
-
 using namespace gr::ieee802_15_4;
 
 
@@ -29,13 +28,14 @@ public:
 
 #define dout d_debug && std::cout
 
-mac_impl(bool debug) :
+mac_impl(bool debug, const std::vector<unsigned char> &mac_addr) :
 	block ("mac",
 			gr::io_signature::make(0, 0, 0),
 			gr::io_signature::make(0, 0, 0)),
 			d_msg_offset(0),
 			d_seq_nr(0),
 			d_debug(debug),
+                        d_mac_addr(mac_addr),
                         d_ne(0),
                         d_n(0),
                         d_seq_nr_pr(-1) {
@@ -76,6 +76,15 @@ void mac_in(pmt::pmt_t msg) {
 		dout << "MAC: wrong crc. Dropping packet!" << std::endl;
 		return;
 	}
+        std::vector<unsigned char> rvd_mac_addr;
+        for(int i=0; i<6; i++){
+          	printf("rcvd mac address %d, %x\n",i,*((unsigned char*)pmt::blob_data(blob)+i+3));
+          	rvd_mac_addr.push_back(*((unsigned char*)pmt::blob_data(blob)+i+3));
+        }
+        if(rvd_mac_addr == d_mac_addr){
+          	dout << "MAC: This packet is transmitted by own transmitter. Dropping!"<<std::endl;
+          	return;
+        }
 
 	pmt::pmt_t mac_payload = pmt::make_blob((char*)pmt::blob_data(blob) + 9 , data_len - 9 - 2);
         int seq_nr = (int)(*((unsigned char*)pmt::blob_data(blob)+2));
@@ -148,14 +157,19 @@ void generate_mac(const char *buf, int len) {
 	// seq nr
 	d_msg[2] = d_seq_nr++;
 
-	// addr info
+/*	// addr info
 	d_msg[3] = 0xcd;
 	d_msg[4] = 0xab;
 	d_msg[5] = 0xff;
 	d_msg[6] = 0xff;
 	d_msg[7] = 0x40;
 	d_msg[8] = 0xe8;
+//*/
 
+        //add addr info
+        for(int i=0; i<6; i++){
+          d_msg[i+3] = d_mac_addr[i];
+        }
 	std::memcpy(d_msg + 9, buf, len);
 
 	uint16_t crc = crc16(d_msg, len + 9);
@@ -188,9 +202,10 @@ private:
         float       d_ne=0;
         float       d_n=0;
         int         d_seq_nr_pr=0;
+        std::vector<unsigned char> d_mac_addr;
 };
 
 mac::sptr
-mac::make(bool debug) {
-	return gnuradio::get_initial_sptr(new mac_impl(debug));
+mac::make(bool debug, const std::vector<unsigned char> &mac_addr) {
+	return gnuradio::get_initial_sptr(new mac_impl(debug, mac_addr));
 }

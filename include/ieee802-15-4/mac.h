@@ -28,7 +28,7 @@ class GR_IEEE802_15_4_API mac: virtual public block
 public:
 	
 	typedef boost::shared_ptr<mac> sptr;
-	static sptr make(bool debug= false);
+	static sptr make(bool debug= false, const std::vector<unsigned char> &mac_addr= std::vector<unsigned char>(1));
 };
 
 }  // namespace ieee802_11

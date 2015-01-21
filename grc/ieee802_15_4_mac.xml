@@ -4,7 +4,7 @@
 	<key>ieee802_15_4_mac</key>
 	<category>IEEE802.15.4</category>
 	<import>import ieee802_15_4</import>
-	<make>ieee802_15_4.mac($debug)</make>
+	<make>ieee802_15_4.mac($debug,$mac_addr)</make>
 
 	<param>
 		<name>Debug</name>
@@ -20,6 +20,12 @@
 			<name>Disable</name>
 			<key>False</key>
 		</option>
+	</param>
+        <param>
+		<name>MAC Address</name>
+		<key>mac_addr</key>
+		<value>(0xcd, 0xab, 0xff, 0xff, 0x40, 0xe8)</value>
+		<type>real_vector</type>
 	</param>
 	<sink>
 		<name>pdu in</name>
