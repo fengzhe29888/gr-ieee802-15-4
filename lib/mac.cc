@@ -78,7 +78,7 @@ void mac_in(pmt::pmt_t msg) {
 	}
         std::vector<unsigned char> rvd_mac_addr;
         for(int i=0; i<6; i++){
-          	printf("rcvd mac address %d, %x\n",i,*((unsigned char*)pmt::blob_data(blob)+i+3));
+          	//printf("rcvd mac address %d, %x\n",i,*((unsigned char*)pmt::blob_data(blob)+i+3));
           	rvd_mac_addr.push_back(*((unsigned char*)pmt::blob_data(blob)+i+3));
         }
         if(rvd_mac_addr == d_mac_addr){
