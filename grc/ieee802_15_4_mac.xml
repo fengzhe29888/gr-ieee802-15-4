@@ -4,7 +4,7 @@
 	<key>ieee802_15_4_mac</key>
 	<category>IEEE802.15.4</category>
 	<import>import ieee802_15_4</import>
-	<make>ieee802_15_4.mac($debug,$mac_addr)</make>
+	<make>ieee802_15_4.mac($debug,$CC)</make>
 
 	<param>
 		<name>Debug</name>
@@ -21,11 +21,20 @@
 			<key>False</key>
 		</option>
 	</param>
-        <param>
-		<name>MAC Address</name>
-		<key>mac_addr</key>
-		<value>(0xcd, 0xab, 0xff, 0xff, 0x40, 0xe8)</value>
-		<type>real_vector</type>
+	<param>
+		<name>CC2530 Debug</name>
+		<key>CC</key>
+		<value>False</value>
+		<type>bool</type>
+
+		<option>
+			<name>Seq Num -1</name>
+			<key>True</key>
+		</option>
+		<option>
+			<name>Normal Num</name>
+			<key>False</key>
+		</option>
 	</param>
 	<sink>
 		<name>pdu in</name>
