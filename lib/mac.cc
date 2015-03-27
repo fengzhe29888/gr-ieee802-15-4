@@ -153,28 +153,28 @@ void generate_mac(const char *buf, int len) {
 
 	// FCF
 	d_msg[0] = 0x41;
-        if(d_CC)
+        if(!d_CC)
 	  d_msg[1] = 0x88;
 
 	// seq nr
-	d_msg[1+int(d_CC)] = d_seq_nr++;
+	d_msg[2-int(d_CC)] = d_seq_nr++;
 
 	// addr info
-	d_msg[2+int(d_CC)] = 0xcd;
-	d_msg[3+int(d_CC)] = 0xab;
-	d_msg[4+int(d_CC)] = 0xff;
-	d_msg[5+int(d_CC)] = 0xff;
-	d_msg[6+int(d_CC)] = 0x40;
-	d_msg[7+int(d_CC)] = 0xe8;
+	d_msg[3-int(d_CC)] = 0xcd;
+	d_msg[4-int(d_CC)] = 0xab;
+	d_msg[5-int(d_CC)] = 0xff;
+	d_msg[6-int(d_CC)] = 0xff;
+	d_msg[7-int(d_CC)] = 0x40;
+	d_msg[8-int(d_CC)] = 0xe8;
 
-	std::memcpy(d_msg + 8 + int(d_CC), buf, len);
+	std::memcpy(d_msg + 9 - int(d_CC), buf, len);
 
-	uint16_t crc = crc16(d_msg, len + 8 + int(d_CC));
+	uint16_t crc = crc16(d_msg, len + 9 - int(d_CC));
 
-	d_msg[ 8 + int(d_CC) + len] = crc & 0xFF;
-	d_msg[9 + int(d_CC) + len] = crc >> 8;
+	d_msg[ 9 - int(d_CC) + len] = crc & 0xFF;
+	d_msg[10 - int(d_CC) + len] = crc >> 8;
 
-	d_msg_len = 8 + int(d_CC) + len + 2;
+	d_msg_len = 9 - int(d_CC) + len + 2;
 
 	dout << std::dec << "MAC: msg len " << d_msg_len <<
 	        "    len " << len << std::endl;
